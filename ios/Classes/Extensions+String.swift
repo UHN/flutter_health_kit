@@ -1,8 +1,11 @@
 import HealthKit
 
 extension [String: Any] {
+    var predicateCode: String? {
+        self["code"] as? String
+    }
     var predicate: NSPredicate? {
-        guard let code = self["code"] as? String else {
+        guard let code = predicateCode else {
             return nil
         }
         if code == "or" {

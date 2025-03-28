@@ -10,6 +10,7 @@ class FlutterHealthKit {
     Quantity: (map) => Quantity.fromJson(Map.from(map)),
     Correlation: (map) => Correlation.fromJson(Map.from(map)),
     Electrocardiogram: (map) => Electrocardiogram.fromJson(Map.from(map)),
+    Category: (map) => Category.fromJson(Map.from(map)),
   };
 
   /// Requests authorization to access health data.
@@ -24,6 +25,26 @@ class FlutterHealthKit {
       toShare: toShare?.map((e) => e.identifier).toList(),
       read: read?.map((e) => e.identifier).toList(),
     );
+  }
+
+  /// Returns authorization to access for items.
+  ///
+  /// [types] is the [ObjectTypeId] to query.
+  static Future<Map<ObjectTypeId, HKAuthorizationStatus>> authorizationStatus(
+    List<ObjectTypeId> types,
+  ) {
+    return FlutterHealthKitPlatform.instance
+        .authorizationStatus(
+          types.map((e) => e.identifier).toList(),
+        )
+        .then(
+          (v) => v.map(
+            (k, v) => MapEntry(
+              ObjectTypeId.fromIdentifier(k),
+              HKAuthorizationStatus.fromCode(v),
+            ),
+          ),
+        );
   }
 
   /// Enables background delivery of health data.

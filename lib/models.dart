@@ -250,6 +250,48 @@ class Correlation extends Sample {
       type as HKCorrelationTypeIdentifier;
 }
 
+/// A category sample.
+class Category extends Sample {
+  factory Category.fromJson(Map<String, dynamic> json) {
+    return Category(
+      uuid: json['uuid'] as String,
+      start: DateTime.fromMillisecondsSinceEpoch(
+        ((json['startTimestamp'] as double) * 1000).toInt(),
+      ),
+      end: DateTime.fromMillisecondsSinceEpoch(
+        ((json['endTimestamp'] as double) * 1000).toInt(),
+      ),
+      type: HKCategoryTypeIdentifier.values.firstWhere(
+            (e) => e.identifier == json['categoryType'],
+      ),
+      sourceRevision: SourceRevision.fromJson(Map.from(json['sourceRevision'])),
+      device: json['device'] != null
+          ? Device.fromJson(Map.from(json['device']))
+          : null,
+      value: json['value'] as int,
+      metadata: json['metadata'] != null ? Map.from(json['metadata']) : null,
+    );
+  }
+
+  Category({
+    required super.uuid,
+    required super.start,
+    required super.end,
+    required super.sourceRevision,
+    required this.value,
+    required super.type,
+    super.metadata,
+    super.device,
+  });
+
+  /// The value of category.
+  final int value;
+
+  /// The type of category.
+  HKCategoryTypeIdentifier get categoryType =>
+      type as HKCategoryTypeIdentifier;
+}
+
 /// A source revision.
 class SourceRevision {
   factory SourceRevision.fromJson(Map<String, dynamic> json) => SourceRevision(
@@ -533,4 +575,17 @@ enum HKStatisticsOptions {
   const HKStatisticsOptions._(this.code);
 
   final int code;
+}
+
+enum HKAuthorizationStatus {
+  notDetermined._(0),
+  sharingDenied._(1),
+  sharingAuthorized._(2);
+
+  const HKAuthorizationStatus._(this.code);
+
+  final int code;
+
+  static HKAuthorizationStatus fromCode(int code) =>
+      HKAuthorizationStatus.values.firstWhere((e) => e.code == code);
 }

@@ -74,6 +74,17 @@ public class FlutterHealthKitPlugin: NSObject, FlutterPlugin {
                     result(value)
                 }
             }
+        case "authorizationStatus":
+            guard let arguments = call.arguments as? [String] else {
+                result(FlutterError(code: "flutter_health_kit", message: "\(call.method) invalid arguments \(String(describing: call.arguments))", details: nil))
+                return
+            }
+            let types = arguments.map { $0.objectType }.compactMap { $0 }
+            var data: [String: Int] = [:]
+            for type in types {
+                data[type.identifier] = store.authorizationStatus(for: type).rawValue
+            }
+            result(data)
         case "querySampleType":
             guard let arguments = call.arguments as? [String: Any] else {
                 result(FlutterError(code: "flutter_health_kit", message: "\(call.method) invalid arguments \(String(describing: call.arguments))", details: nil))
@@ -93,67 +104,76 @@ public class FlutterHealthKitPlugin: NSObject, FlutterPlugin {
                     ascending: v["ascending"] as! Bool
                 )}
             let predicate = arguments["predicate"] as? [String: Any]
-            let query = HKSampleQuery(sampleType: sampleType, predicate: predicate?.predicate, limit: limit, sortDescriptors: sortDescriptors) { (_, data, error) in
-                guard
-                    error == nil,
-                    let results = data
-                else {
-                    DispatchQueue.main.async {
-                        result(FlutterError(code: "flutter_health_kit", message: error?.localizedDescription, details: nil))
-                    }
-                    return
-                }
-                let correlations = results.map({ $0 as? HKCorrelation}).compactMap({ $0 })
-                if (!correlations.isEmpty) {
-                    let types = Set(correlations.map { $0.objects.map { $0.sampleType } }.flatMap { $0 }.compactMap { $0 as? HKQuantityType })
-                    self.store.preferredUnits(for: types) { types, error in
-                        if let error = error {
-                            DispatchQueue.main.async {
-                                result(FlutterError(code: "flutter_health_kit", message: error.localizedDescription, details: error))
-                            }
-                            return
-                        }
+            preparePredicate(predicate: predicate) { (predicate, error) in
+                let query = HKSampleQuery(sampleType: sampleType, predicate: predicate, limit: limit, sortDescriptors: sortDescriptors) { (_, data, error) in
+                    guard
+                        error == nil,
+                        let results = data
+                    else {
                         DispatchQueue.main.async {
-                            result(correlations.map { $0.toJson(types) })
+                            result(FlutterError(code: "flutter_health_kit", message: error?.localizedDescription, details: nil))
                         }
+                        return
                     }
-                    return
-                }
-                let workouts = results.map({ $0 as? HKWorkout}).compactMap({ $0 })
-                if !workouts.isEmpty {
-                    DispatchQueue.main.async {
-                        result(workouts.map { $0.toJson })
-                    }
-                    return
-                }
-                let cardiograms = results.map( { $0 as? HKElectrocardiogram}).compactMap( { $0 })
-                if !cardiograms.isEmpty {
-                    DispatchQueue.main.async {
-                        result(cardiograms.map { $0.toJson })
-                    }
-                    return
-                }
-                let quantities = results.map({ $0 as? HKQuantitySample}).compactMap({ $0 })
-                if !quantities.isEmpty {
-                    let unitTypes = [sampleType].map( { $0 as? HKQuantityType}).compactMap({ $0 })
-                    self.store.preferredUnits(for: Set(unitTypes)) { types, error in
-                        if let error = error {
-                            DispatchQueue.main.async {
-                                result(FlutterError(code: "flutter_health_kit", message: error.localizedDescription, details: error))
+                    let correlations = results.map({ $0 as? HKCorrelation}).compactMap({ $0 })
+                    if (!correlations.isEmpty) {
+                        let types = Set(correlations.map { $0.objects.map { $0.sampleType } }.flatMap { $0 }.compactMap { $0 as? HKQuantityType })
+                        self.store.preferredUnits(for: types) { types, error in
+                            if let error = error {
+                                DispatchQueue.main.async {
+                                    result(FlutterError(code: "flutter_health_kit", message: error.localizedDescription, details: error))
+                                }
+                                return
                             }
-                            return
+                            DispatchQueue.main.async {
+                                result(correlations.map { $0.toJson(types) })
+                            }
                         }
-                        DispatchQueue.main.async {
-                            result(quantities.map { $0.toJson(types) })
-                        }
+                        return
                     }
-                    return
+                    let workouts = results.map({ $0 as? HKWorkout}).compactMap({ $0 })
+                    if !workouts.isEmpty {
+                        DispatchQueue.main.async {
+                            result(workouts.map { $0.toJson })
+                        }
+                        return
+                    }
+                    let cardiograms = results.map( { $0 as? HKElectrocardiogram}).compactMap( { $0 })
+                    if !cardiograms.isEmpty {
+                        DispatchQueue.main.async {
+                            result(cardiograms.map { $0.toJson })
+                        }
+                        return
+                    }
+                    let categories = results.map( { $0 as? HKCategorySample}).compactMap( { $0 })
+                    if !categories.isEmpty {
+                        DispatchQueue.main.async {
+                            result(categories.map { $0.toJson })
+                        }
+                        return
+                    }
+                    let quantities = results.map({ $0 as? HKQuantitySample}).compactMap({ $0 })
+                    if !quantities.isEmpty {
+                        let unitTypes = [sampleType].map( { $0 as? HKQuantityType}).compactMap({ $0 })
+                        self.store.preferredUnits(for: Set(unitTypes)) { types, error in
+                            if let error = error {
+                                DispatchQueue.main.async {
+                                    result(FlutterError(code: "flutter_health_kit", message: error.localizedDescription, details: error))
+                                }
+                                return
+                            }
+                            DispatchQueue.main.async {
+                                result(quantities.map { $0.toJson(types) })
+                            }
+                        }
+                        return
+                    }
+                    DispatchQueue.main.async {
+                        result([])
+                    }
                 }
-                DispatchQueue.main.async {
-                    result([])
-                }
+                self.store.execute(query)
             }
-            store.execute(query)
         case "queryElectrocardiogram":
             guard let raw = call.arguments as? String, let uuid = UUID(uuidString: raw) else {
                 result(FlutterError(code: "flutter_health_kit", message: "\(call.method) invalid arguments \(String(describing: call.arguments))", details: nil))
@@ -285,6 +305,36 @@ public class FlutterHealthKitPlugin: NSObject, FlutterPlugin {
             FlutterEventChannel(name: "flutter_health_kit_query_\(sampleType.identifier)", binaryMessenger: binaryMessenger).setStreamHandler(handler)
         default:
             result(FlutterMethodNotImplemented)
+        }
+    }
+    
+    private func preparePredicate(predicate: [String: Any]?, completion: @escaping (NSPredicate?, Error?) -> Void) {
+        if predicate == nil {
+            completion(nil, nil)
+        } else {
+            if predicate?.predicateCode == "predicateForObjectsAssociated" {
+                guard let uuidString = predicate?["uuid"] as? String,
+                      let uuid = UUID(uuidString: uuidString),
+                      let sampleTypeString = predicate?["sampleType"] as? String,
+                      let sampleType = sampleTypeString.sampleType
+                else {
+                    completion(nil, nil)
+                    return
+                }
+                let query0 = HKSampleQuery(sampleType: sampleType, predicate: HKQuery.predicateForObject(with: uuid), limit: 1, sortDescriptors: nil) { _, data0, error0 in
+                    guard
+                        error0 == nil,
+                        let ecgSample = data0?.first as? HKElectrocardiogram
+                    else {
+                        completion(nil, error0 ?? HKError.init(.errorNoData))
+                        return
+                    }
+                    completion(HKQuery.predicateForObjectsAssociated(electrocardiogram: ecgSample), nil)
+                }
+                store.execute(query0)
+            } else {
+                completion(predicate?.predicate, nil)
+            }
         }
     }
 }

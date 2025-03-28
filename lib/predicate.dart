@@ -1,4 +1,5 @@
 import 'operator_type.dart';
+import 'types.dart';
 
 typedef PredicateDescriptor = Map<String, dynamic>;
 
@@ -27,6 +28,16 @@ class Predicate {
         'key': key,
         'operatorType': operator.code,
         'value': value,
+      };
+
+  static PredicateDescriptor predicateForObjectsAssociated({
+    required SampleTypeId type,
+    required String uuid,
+  }) =>
+      {
+        'code': 'predicateForObjectsAssociated',
+        'sampleType': type.identifier,
+        'uuid': uuid,
       };
 
   static PredicateDescriptor or(

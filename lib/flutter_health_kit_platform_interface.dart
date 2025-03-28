@@ -32,6 +32,12 @@ abstract class FlutterHealthKitPlatform extends PlatformInterface {
     );
   }
 
+  Future<Map<String, int>> authorizationStatus(List<String> types) {
+    throw UnimplementedError(
+      'authorizationStatus() has not been implemented.',
+    );
+  }
+
   Future<bool> enableBackgroundDelivery(String type, int frequency) {
     throw UnimplementedError(
       'enableBackgroundDelivery() has not been implemented.',

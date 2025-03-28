@@ -130,6 +130,22 @@ extension HKElectrocardiogram {
     }
 }
 
+extension HKCategorySample {
+    var toJson: [String: Any] {
+        return [
+            "uuid": uuid.uuidString,
+            "identifier": sampleType.identifier,
+            "startTimestamp": startDate.timeIntervalSince1970,
+            "endTimestamp": endDate.timeIntervalSince1970,
+            "value": value,
+            "categoryType": categoryType.identifier,
+            "metadata": metadataToJson(metadata),
+            "device": device?.toJson,
+            "sourceRevision": sourceRevision.toJson,
+            ]
+    }
+}
+
 extension HKDevice {
     var toJson: [String: Any] {
         return [

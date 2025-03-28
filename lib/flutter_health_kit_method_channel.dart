@@ -23,6 +23,15 @@ class MethodChannelFlutterHealthKit extends FlutterHealthKitPlatform {
   }
 
   @override
+  Future<Map<String, int>> authorizationStatus(List<String> types) async {
+    final result = await methodChannel.invokeMapMethod<String, int>(
+      'authorizationStatus',
+      types,
+    );
+    return result ?? {};
+  }
+
+  @override
   Future<bool> enableBackgroundDelivery(String type, int frequency) async {
     final result =
         await methodChannel.invokeMethod<bool>('enableBackgroundDelivery', {

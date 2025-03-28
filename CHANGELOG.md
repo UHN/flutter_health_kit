@@ -1,3 +1,7 @@
+## 0.0.1-dev.16
+
+Added category query
+
 ## 0.0.1-dev.15
 
 Updated electrocardiogram query
