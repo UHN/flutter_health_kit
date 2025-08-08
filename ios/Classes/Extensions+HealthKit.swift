@@ -93,7 +93,6 @@ extension HKWorkout {
         for (quantityType, statistic) in allStatistics {
             if let unit = units[quantityType] {
                 statistics[quantityType.identifier] = [
-                    "quantityType": quantityType.identifier,
                     "average": statistic.averageQuantity()?.doubleValue(for: unit),
                     "total": statistic.sumQuantity()?.doubleValue(for: unit),
                     "minimum": statistic.minimumQuantity()?.doubleValue(for: unit),
