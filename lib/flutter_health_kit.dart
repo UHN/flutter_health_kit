@@ -77,6 +77,17 @@ class FlutterHealthKit {
     return stream.map((event) => ObjectTypeId.fromIdentifier(event));
   }
 
+  /// Performs an anchored object query for the specified [type], returning a stream of results.
+  ///
+  /// This method allows incremental retrieval of health data objects and tracks deletions.
+  ///
+  /// [type] is the [ObjectTypeId] to query.
+  /// [withStart] is the optional start date for the query.
+  /// [end] is the optional end date for the query.
+  ///
+  /// Returns a [Stream] of tuples, where each tuple contains:
+  ///   - a [List] of added objects of type [T] (e.g., new or updated samples)
+  ///   - a [List] of [String]s representing the UUIDs of deleted objects
   static Future<Stream<(List<T>, List<String>)>> anchoredObjectQuery<T extends Sample>(
     ObjectTypeId type, {
     DateTime? withStart,
