@@ -86,7 +86,7 @@ class Statistic {
   final double? total;
   final double? maximum;
   final double? minimum;
-  final String unit;
+  final String? unit;
 }
 
 /// A workout sample.
