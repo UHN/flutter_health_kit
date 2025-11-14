@@ -506,9 +506,84 @@ public class FlutterHealthKitPlugin: NSObject, FlutterPlugin {
                 name: "flutter_health_kit_anchored_object_query_\(sampleType.identifier)",
                 binaryMessenger: binaryMessenger
             ).setStreamHandler(handler)
+        case "queryCharacteristic":
+            guard let arguments = call.arguments as? [String: Any],
+                  let typeString = arguments["type"] as? String,
+                  let characteristicType = typeString.characteristicTypeIdentifier else {
+                result(
+                    FlutterError(
+                        code: "flutter_health_kit",
+                        message: "\(call.method) invalid arguments \(String(describing: call.arguments))",
+                        details: nil))
+                return
+            }
+
+            Task {
+                do {
+                    let characteristic = try await queryCharacteristic(type: characteristicType)
+                    result(characteristic)
+                } catch {
+                    result(
+                        FlutterError(
+                            code: "flutter_health_kit",
+                            message: "\(call.method) error: \(error.localizedDescription)",
+                            details: nil))
+                }
+            }
         default:
             result(FlutterMethodNotImplemented)
         }
+    }
+
+    private func queryCharacteristic(type: HKCharacteristicTypeIdentifier) async throws -> [String: Any] {
+        var value: Any
+        let typeString = type.identifier
+
+        switch type {
+        case .biologicalSex:
+            let biologicalSex = try store.biologicalSex()
+            value = biologicalSex.biologicalSex.rawValue
+
+        case .bloodType:
+            let bloodTypeObject = try store.bloodType()
+            value = bloodTypeObject.bloodType.rawValue
+
+        case .dateOfBirth:
+            let components = try store.dateOfBirthComponents()
+            if let date = Calendar.current.date(from: components) {
+                value = date.timeIntervalSince1970
+            } else {
+                throw NSError(
+                    domain: "flutter_health_kit",
+                    code: -1,
+                    userInfo: [NSLocalizedDescriptionKey: "Could not construct date from components"]
+                )
+            }
+
+        case .fitzpatrickSkinType:
+            let skinTypeObject = try store.fitzpatrickSkinType()
+            value = skinTypeObject.skinType.rawValue
+
+        case .wheelchairUse:
+            let wheelchairUseObject = try store.wheelchairUse()
+            value = wheelchairUseObject.wheelchairUse.rawValue
+
+        case .activityMoveMode:
+            let activityMoveModeObject = try store.activityMoveMode()
+            value = activityMoveModeObject.activityMoveMode.rawValue
+
+        default:
+            throw NSError(
+                domain: "flutter_health_kit",
+                code: -1,
+                userInfo: [NSLocalizedDescriptionKey: "Unsupported characteristic type: \(type.identifier)"]
+            )
+        }
+
+        return [
+            "type": typeString,
+            "value": value
+        ]
     }
 
     private func preparePredicate(

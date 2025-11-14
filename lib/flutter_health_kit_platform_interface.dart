@@ -83,4 +83,10 @@ abstract class FlutterHealthKitPlatform extends PlatformInterface {
       'queryElectrocardiogram() has not been implemented.',
     );
   }
+
+  Future<Map<String, dynamic>> queryCharacteristic(String type) {
+    throw UnimplementedError(
+      'queryCharacteristic() has not been implemented.',
+    );
+  }
 }

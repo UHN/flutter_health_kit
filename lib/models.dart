@@ -484,6 +484,106 @@ class OperatingSystemVersion {
       };
 }
 
+/// A characteristic value from HealthKit.
+///
+/// Unlike samples, characteristics are read-once values that don't change
+/// frequently (e.g., biological sex, blood type, date of birth).
+class Characteristic {
+  factory Characteristic.fromJson(Map<String, dynamic> json) {
+    final type = HKCharacteristicTypeIdentifier.values.firstWhere(
+      (e) => e.identifier == json['type'],
+    );
+
+    dynamic value;
+    switch (type) {
+      case HKCharacteristicTypeIdentifier.biologicalSex:
+        value = BiologicalSex.fromCode(json['value'] as int);
+        break;
+      case HKCharacteristicTypeIdentifier.bloodType:
+        value = BloodType.fromCode(json['value'] as int);
+        break;
+      case HKCharacteristicTypeIdentifier.dateOfBirth:
+        value = DateTime.fromMillisecondsSinceEpoch(
+          ((json['value'] as double) * 1000).toInt(),
+        );
+        break;
+      case HKCharacteristicTypeIdentifier.fitzpatrickSkinType:
+        value = FitzpatrickSkinType.fromCode(json['value'] as int);
+        break;
+      case HKCharacteristicTypeIdentifier.wheelchairUse:
+        value = WheelchairUse.fromCode(json['value'] as int);
+        break;
+      case HKCharacteristicTypeIdentifier.activityMoveMode:
+        value = ActivityMoveMode.fromCode(json['value'] as int);
+        break;
+    }
+
+    return Characteristic(
+      type: type,
+      value: value,
+    );
+  }
+
+  Characteristic({
+    required this.type,
+    required this.value,
+  });
+
+  /// The type of characteristic.
+  final HKCharacteristicTypeIdentifier type;
+
+  /// The value of the characteristic.
+  ///
+  /// Type depends on characteristic type:
+  /// - biologicalSex: [BiologicalSex]
+  /// - bloodType: [BloodType]
+  /// - dateOfBirth: [DateTime]
+  /// - fitzpatrickSkinType: [FitzpatrickSkinType]
+  /// - wheelchairUse: [WheelchairUse]
+  /// - activityMoveMode: [ActivityMoveMode]
+  final dynamic value;
+
+  /// Returns the biological sex value if this characteristic is biologicalSex.
+  BiologicalSex? get biologicalSex =>
+      type == HKCharacteristicTypeIdentifier.biologicalSex &&
+              value is BiologicalSex
+          ? value as BiologicalSex
+          : null;
+
+  /// Returns the blood type value if this characteristic is bloodType.
+  BloodType? get bloodType =>
+      type == HKCharacteristicTypeIdentifier.bloodType && value is BloodType
+          ? value as BloodType
+          : null;
+
+  /// Returns the date of birth value if this characteristic is dateOfBirth.
+  DateTime? get dateOfBirth =>
+      type == HKCharacteristicTypeIdentifier.dateOfBirth && value is DateTime
+          ? value as DateTime
+          : null;
+
+  /// Returns the Fitzpatrick skin type value if this characteristic is fitzpatrickSkinType.
+  FitzpatrickSkinType? get fitzpatrickSkinType =>
+      type == HKCharacteristicTypeIdentifier.fitzpatrickSkinType &&
+              value is FitzpatrickSkinType
+          ? value as FitzpatrickSkinType
+          : null;
+
+  /// Returns the wheelchair use value if this characteristic is wheelchairUse.
+  WheelchairUse? get wheelchairUse =>
+      type == HKCharacteristicTypeIdentifier.wheelchairUse &&
+              value is WheelchairUse
+          ? value as WheelchairUse
+          : null;
+
+  /// Returns the activity move mode value if this characteristic is activityMoveMode.
+  ActivityMoveMode? get activityMoveMode =>
+      type == HKCharacteristicTypeIdentifier.activityMoveMode &&
+              value is ActivityMoveMode
+          ? value as ActivityMoveMode
+          : null;
+}
+
 enum WorkoutEventType {
   pause._(1),
   resume._(2),
@@ -655,4 +755,90 @@ enum HKAuthorizationStatus {
 
   static HKAuthorizationStatus fromCode(int code) =>
       HKAuthorizationStatus.values.firstWhere((e) => e.code == code);
+}
+
+/// Biological sex values for HealthKit characteristics.
+enum BiologicalSex {
+  notSet._(0),
+  female._(1),
+  male._(2),
+  other._(3);
+
+  const BiologicalSex._(this.code);
+
+  final int code;
+
+  static BiologicalSex fromCode(int code) =>
+      BiologicalSex.values.firstWhere((e) => e.code == code);
+}
+
+/// Blood type values for HealthKit characteristics.
+enum BloodType {
+  notSet._(0),
+  aPositive._(1),
+  aNegative._(2),
+  bPositive._(3),
+  bNegative._(4),
+  abPositive._(5),
+  abNegative._(6),
+  oPositive._(7),
+  oNegative._(8);
+
+  const BloodType._(this.code);
+
+  final int code;
+
+  static BloodType fromCode(int code) =>
+      BloodType.values.firstWhere((e) => e.code == code);
+}
+
+/// Fitzpatrick skin type values (I-VI scale) for HealthKit characteristics.
+enum FitzpatrickSkinType {
+  notSet._(0),
+  // ignore: constant_identifier_names
+  I._(1),
+  // ignore: constant_identifier_names
+  II._(2),
+  // ignore: constant_identifier_names
+  III._(3),
+  // ignore: constant_identifier_names
+  IV._(4),
+  // ignore: constant_identifier_names
+  V._(5),
+  // ignore: constant_identifier_names
+  VI._(6);
+
+  const FitzpatrickSkinType._(this.code);
+
+  final int code;
+
+  static FitzpatrickSkinType fromCode(int code) =>
+      FitzpatrickSkinType.values.firstWhere((e) => e.code == code);
+}
+
+/// Wheelchair use values for HealthKit characteristics.
+enum WheelchairUse {
+  notSet._(0),
+  no._(1),
+  yes._(2);
+
+  const WheelchairUse._(this.code);
+
+  final int code;
+
+  static WheelchairUse fromCode(int code) =>
+      WheelchairUse.values.firstWhere((e) => e.code == code);
+}
+
+/// Activity move mode values for HealthKit characteristics.
+enum ActivityMoveMode {
+  activeEnergy._(1),
+  appleMoveTime._(2);
+
+  const ActivityMoveMode._(this.code);
+
+  final int code;
+
+  static ActivityMoveMode fromCode(int code) =>
+      ActivityMoveMode.values.firstWhere((e) => e.code == code);
 }

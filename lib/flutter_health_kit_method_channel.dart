@@ -126,4 +126,19 @@ class MethodChannelFlutterHealthKit extends FlutterHealthKitPlatform {
     );
     return result ?? [];
   }
+
+  @override
+  Future<Map<String, dynamic>> queryCharacteristic(String type) async {
+    final result = await methodChannel.invokeMethod<Map<dynamic, dynamic>>(
+      'queryCharacteristic',
+      {'type': type},
+    );
+    if (result == null) {
+      throw PlatformException(
+        code: 'NULL_RESULT',
+        message: 'queryCharacteristic returned null',
+      );
+    }
+    return Map<String, dynamic>.from(result);
+  }
 }

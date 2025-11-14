@@ -11,6 +11,7 @@ class FlutterHealthKit {
     Correlation: (map) => Correlation.fromJson(Map.from(map)),
     Electrocardiogram: (map) => Electrocardiogram.fromJson(Map.from(map)),
     Category: (map) => Category.fromJson(Map.from(map)),
+    Characteristic: (map) => Characteristic.fromJson(Map.from(map)),
   };
 
   /// Requests authorization to access health data.
@@ -142,5 +143,32 @@ class FlutterHealthKit {
         .map((e) => VoltageMeasurement.fromJson(Map.from(e)))
         .whereType<VoltageMeasurement>()
         .toList();
+  }
+
+  /// Queries a characteristic value from HealthKit.
+  ///
+  /// Characteristics are read-once values like biological sex, blood type,
+  /// date of birth, etc. Unlike samples, they don't have time ranges or
+  /// multiple instances.
+  ///
+  /// [type] is the [HKCharacteristicTypeIdentifier] to query.
+  ///
+  /// Returns a [Characteristic] with the value, or throws if not authorized
+  /// or the characteristic is not set.
+  ///
+  /// Example:
+  /// ```dart
+  /// final biologicalSex = await FlutterHealthKit.queryCharacteristic(
+  ///   HKCharacteristicTypeIdentifier.biologicalSex,
+  /// );
+  /// print('Biological sex: ${biologicalSex.biologicalSex}');
+  /// ```
+  static Future<Characteristic> queryCharacteristic(
+    HKCharacteristicTypeIdentifier type,
+  ) async {
+    final result = await FlutterHealthKitPlatform.instance.queryCharacteristic(
+      type.identifier,
+    );
+    return Characteristic.fromJson(result);
   }
 }
