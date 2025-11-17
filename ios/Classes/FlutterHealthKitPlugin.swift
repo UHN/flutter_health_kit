@@ -537,7 +537,7 @@ public class FlutterHealthKitPlugin: NSObject, FlutterPlugin {
 
     private func queryCharacteristic(type: HKCharacteristicTypeIdentifier) async throws -> [String: Any] {
         var value: Any
-        let typeString = type.identifier
+        let typeString = type.rawValue
 
         switch type {
         case .biologicalSex:
@@ -576,7 +576,7 @@ public class FlutterHealthKitPlugin: NSObject, FlutterPlugin {
             throw NSError(
                 domain: "flutter_health_kit",
                 code: -1,
-                userInfo: [NSLocalizedDescriptionKey: "Unsupported characteristic type: \(type.identifier)"]
+                userInfo: [NSLocalizedDescriptionKey: "Unsupported characteristic type: \(type.rawValue)"]
             )
         }
 
