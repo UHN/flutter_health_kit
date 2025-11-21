@@ -110,6 +110,9 @@ extension String {
         if (HKSampleType.activitySummaryType().identifier == self){
             return HKSampleType.activitySummaryType()
         }
+        if let type = characteristicTypeIdentifier {
+            return HKObjectType.characteristicType(forIdentifier: type)
+        }
         let value = sampleType
         if value == nil {
             debugPrint("Unknown HKObjectType for \(self)")
